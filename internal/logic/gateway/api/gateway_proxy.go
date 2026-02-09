@@ -40,6 +40,7 @@ var GatewayNameMapping = map[string]_interface.GatewayInterface{
 	"mulenpay":        &MulenPay{},
 	"alikassa":        &AliKassa{},
 	"blockonomics":    &Blockonomics{},
+	"platega":         &Platega{},
 	//"airwallex":       &Airwallex{},
 }
 
@@ -65,6 +66,7 @@ var GatewayShortNameMapping = map[string]string{
 	"alikassa":        "AK",
 	"blockonomics":    "BK",
 	"airwallex":       "AW",
+	"platega":         "PG",
 }
 
 // var ExportGatewaySetupListKeys = []string{"stripe", "changelly", "paypal", "unitpay", "payssion", "wire_transfer"}
@@ -84,6 +86,7 @@ var ExportGatewaySetupList = map[string]*_interface.GatewayInfo{
 	"mulenpay":      MulenPay{}.GatewayInfo(context.Background()),
 	"alikassa":      AliKassa{}.GatewayInfo(context.Background()),
 	"blockonomics":  Blockonomics{}.GatewayInfo(context.Background()),
+	"platega":       Platega{}.GatewayInfo(context.Background()),
 	//"cryptadium": Cryptadium{}.GatewayInfo(context.Background()),
 }
 
