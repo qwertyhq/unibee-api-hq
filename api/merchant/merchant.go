@@ -27,6 +27,7 @@ import (
 	"unibee/api/merchant/session"
 	"unibee/api/merchant/subscription"
 	"unibee/api/merchant/task"
+	_telegram "unibee/api/merchant/telegram"
 	"unibee/api/merchant/track"
 	"unibee/api/merchant/user"
 	"unibee/api/merchant/vat"
@@ -347,4 +348,13 @@ type IMerchantWebhook interface {
 	NewEndpoint(ctx context.Context, req *webhook.NewEndpointReq) (res *webhook.NewEndpointRes, err error)
 	UpdateEndpoint(ctx context.Context, req *webhook.UpdateEndpointReq) (res *webhook.UpdateEndpointRes, err error)
 	DeleteEndpoint(ctx context.Context, req *webhook.DeleteEndpointReq) (res *webhook.DeleteEndpointRes, err error)
+}
+
+type IMerchantTelegram interface {
+	Setup(ctx context.Context, req *_telegram.SetupReq) (res *_telegram.SetupRes, err error)
+	GetSetup(ctx context.Context, req *_telegram.GetSetupReq) (res *_telegram.GetSetupRes, err error)
+	SendTest(ctx context.Context, req *_telegram.SendTestReq) (res *_telegram.SendTestRes, err error)
+	TemplateList(ctx context.Context, req *_telegram.TemplateListReq) (res *_telegram.TemplateListRes, err error)
+	TemplateUpdate(ctx context.Context, req *_telegram.TemplateUpdateReq) (res *_telegram.TemplateUpdateRes, err error)
+	TemplatePreview(ctx context.Context, req *_telegram.TemplatePreviewReq) (res *_telegram.TemplatePreviewRes, err error)
 }

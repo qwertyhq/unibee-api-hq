@@ -252,6 +252,11 @@ var (
 						merchant.NewIntegration(),
 					)
 				})
+				group.Group("/telegram", func(group *ghttp.RouterGroup) {
+					group.Bind(
+						merchant.NewTelegram(),
+					)
+				})
 			})
 
 			s.Group("/user", func(group *ghttp.RouterGroup) {

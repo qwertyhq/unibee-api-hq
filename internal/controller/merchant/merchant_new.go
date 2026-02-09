@@ -151,3 +151,9 @@ type ControllerIntegration struct{}
 func NewIntegration() merchant.IMerchantIntegration {
 	return &ControllerIntegration{}
 }
+
+type ControllerTelegram struct{}
+
+func NewTelegram() merchant.IMerchantTelegram {
+	return &ControllerTelegram{}
+}

@@ -10,6 +10,7 @@ require (
 	github.com/go-pdf/fpdf v0.9.0
 	github.com/go-playground/validator/v10 v10.16.0
 	github.com/go-sql-driver/mysql v1.7.1
+	github.com/go-telegram/bot v1.18.0
 	github.com/gogf/gf/contrib/drivers/mysql/v2 v2.5.6
 	github.com/gogf/gf/contrib/drivers/pgsql/v2 v2.6.4
 	github.com/gogf/gf/contrib/nosql/redis/v2 v2.5.6

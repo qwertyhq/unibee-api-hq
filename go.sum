@@ -54,6 +54,8 @@ github.com/go-playground/validator/v10 v10.16.0 h1:x+plE831WK4vaKHO/jpgUGsvLKIqR
 github.com/go-playground/validator/v10 v10.16.0/go.mod h1:9iXMNT7sEkjXb0I+enO7QXmzG6QCsPWY4zveKFVRSyU=
 github.com/go-sql-driver/mysql v1.7.1 h1:lUIinVbN1DY0xBg0eMOzmmtGoHwWBbvnWubQUrtU8EI=
 github.com/go-sql-driver/mysql v1.7.1/go.mod h1:OXbVy3sEdcQ2Doequ6Z5BW6fXNQTmx+9S1MCJN5yJMI=
+github.com/go-telegram/bot v1.18.0 h1:yQzv437DY42SYTPBY48RinAvwbmf1ox5QICskIYWCD8=
+github.com/go-telegram/bot v1.18.0/go.mod h1:i2TRs7fXWIeaceF3z7KzsMt/he0TwkVC680mvdTFYeM=
 github.com/gogf/gf/contrib/drivers/mysql/v2 v2.5.6 h1:oR9F4LVoKa/fjf/o6Y/CQRNiYy35Bszo07WwvMWYMxo=
 github.com/gogf/gf/contrib/drivers/mysql/v2 v2.5.6/go.mod h1:gvHSRqCpv2c+N0gDHsEldHgU/yM9tcCBdIEKZ32/TaE=
 github.com/gogf/gf/contrib/drivers/pgsql/v2 v2.6.4 h1:a+zIohGG1mv+1/9lBb/C0coM+MbmPYOWKo2SL1tJhTU=
