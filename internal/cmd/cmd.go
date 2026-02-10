@@ -28,6 +28,8 @@ import (
 	"unibee/internal/logic/gateway/webhook"
 	"unibee/internal/logic/member"
 	merchant2 "unibee/internal/logic/merchant"
+	"unibee/internal/logic/scenario"
+	_ "unibee/internal/logic/scenario/actions"
 	"unibee/internal/query"
 	"unibee/utility"
 	"unibee/utility/liberr"
@@ -255,6 +257,11 @@ var (
 				group.Group("/telegram", func(group *ghttp.RouterGroup) {
 					group.Bind(
 						merchant.NewTelegram(),
+					)
+				})
+				group.Group("/scenario", func(group *ghttp.RouterGroup) {
+					group.Bind(
+						merchant.NewScenario(),
 					)
 				})
 			})
@@ -521,6 +528,12 @@ var (
 				} else {
 					g.Log().Infof(ctx, "ReadEmailHtmlTemplate success\n")
 				}
+			}
+
+			// Start scenario engine: bot polling + delayed task worker
+			{
+				scenario.StartDelayedTaskWorker(ctx)
+				scenario.InitAllBotPolling(ctx)
 			}
 
 			s.Run()

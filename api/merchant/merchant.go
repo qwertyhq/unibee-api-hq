@@ -32,6 +32,8 @@ import (
 	"unibee/api/merchant/user"
 	"unibee/api/merchant/vat"
 	"unibee/api/merchant/webhook"
+
+	_scenario "unibee/api/merchant/scenario"
 )
 
 type IMerchantAuth interface {
@@ -357,4 +359,19 @@ type IMerchantTelegram interface {
 	TemplateList(ctx context.Context, req *_telegram.TemplateListReq) (res *_telegram.TemplateListRes, err error)
 	TemplateUpdate(ctx context.Context, req *_telegram.TemplateUpdateReq) (res *_telegram.TemplateUpdateRes, err error)
 	TemplatePreview(ctx context.Context, req *_telegram.TemplatePreviewReq) (res *_telegram.TemplatePreviewRes, err error)
+}
+
+type IMerchantScenario interface {
+	New(ctx context.Context, req *_scenario.NewReq) (res *_scenario.NewRes, err error)
+	Edit(ctx context.Context, req *_scenario.EditReq) (res *_scenario.EditRes, err error)
+	Delete(ctx context.Context, req *_scenario.DeleteReq) (res *_scenario.DeleteRes, err error)
+	Toggle(ctx context.Context, req *_scenario.ToggleReq) (res *_scenario.ToggleRes, err error)
+	List(ctx context.Context, req *_scenario.ListReq) (res *_scenario.ListRes, err error)
+	Detail(ctx context.Context, req *_scenario.DetailReq) (res *_scenario.DetailRes, err error)
+	TestRun(ctx context.Context, req *_scenario.TestRunReq) (res *_scenario.TestRunRes, err error)
+	ExecutionList(ctx context.Context, req *_scenario.ExecutionListReq) (res *_scenario.ExecutionListRes, err error)
+	ExecutionDetail(ctx context.Context, req *_scenario.ExecutionDetailReq) (res *_scenario.ExecutionDetailRes, err error)
+	ActionList(ctx context.Context, req *_scenario.ActionListReq) (res *_scenario.ActionListRes, err error)
+	TriggerList(ctx context.Context, req *_scenario.TriggerListReq) (res *_scenario.TriggerListRes, err error)
+	Validate(ctx context.Context, req *_scenario.ValidateReq) (res *_scenario.ValidateRes, err error)
 }

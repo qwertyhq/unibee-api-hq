@@ -8,6 +8,8 @@ import (
 	redismq "github.com/jackyang-hk/go-redismq"
 
 	redismq2 "unibee/internal/cmd/redismq"
+	"unibee/internal/logic/scenario"
+	_ "unibee/internal/logic/scenario/actions" // register action executors
 	"unibee/internal/logic/telegram"
 	"unibee/utility"
 )
@@ -35,6 +37,16 @@ func (t InternalWebhookListener) Consume(ctx context.Context, message *redismq.M
 			}
 		}()
 		t.sendTelegramNotification(ctx, message.Body)
+	}()
+
+	// Match scenario engine triggers
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				g.Log().Errorf(ctx, "scenario engine panic: %v", r)
+			}
+		}()
+		t.triggerScenarios(ctx, message.Body)
 	}()
 
 	return redismq.CommitMessage
@@ -75,4 +87,28 @@ func init() {
 
 func NewInternalWebhookListener() *InternalWebhookListener {
 	return &InternalWebhookListener{}
+}
+
+// triggerScenarios matches webhook events against scenario engine triggers.
+func (t InternalWebhookListener) triggerScenarios(ctx context.Context, body string) {
+	j, err := gjson.DecodeToJson([]byte(body))
+	if err != nil {
+		return
+	}
+
+	merchantId := j.Get("MerchantId").Uint64()
+	event := j.Get("Event").String()
+	if merchantId == 0 || event == "" {
+		return
+	}
+
+	dataJson := make(map[string]interface{})
+	dataRaw := j.Get("Data")
+	if dataRaw != nil {
+		if m := dataRaw.Map(); m != nil {
+			dataJson = m
+		}
+	}
+
+	scenario.MatchAndRunWebhookScenarios(ctx, merchantId, event, dataJson)
 }

@@ -157,3 +157,9 @@ type ControllerTelegram struct{}
 func NewTelegram() merchant.IMerchantTelegram {
 	return &ControllerTelegram{}
 }
+
+type ControllerScenario struct{}
+
+func NewScenario() merchant.IMerchantScenario {
+	return &ControllerScenario{}
+}
