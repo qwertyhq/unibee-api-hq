@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -45,22 +46,153 @@ func RenderVarsInMap(params map[string]interface{}, vars map[string]string) map[
 }
 
 // ──────────────────────────────────────────
-// Expression evaluator (simple)
+// Expression evaluator (enhanced)
 // ──────────────────────────────────────────
 
-// EvalCondition evaluates a simple condition expression.
-// Supports: "{{var}} == 'value'", "{{var}} != 'value'", "{{var}} > N", "{{var}} < N"
+// EvalCondition evaluates a condition expression with variables.
+// Supports:
+//   - Comparisons: ==, !=, >, <, >=, <=
+//   - String functions: contains(a, b), starts_with(a, b), ends_with(a, b)
+//   - Logical: expr && expr, expr || expr
+//   - Truthy check (non-empty, non-false, non-0)
 func EvalCondition(expr string, vars map[string]string) bool {
 	rendered := RenderVars(expr, vars)
+	return evalExpression(rendered)
+}
 
-	// Try operators: ==, !=, >, <, >=, <=
+// evalExpression handles logical operators && and ||.
+func evalExpression(expr string) bool {
+	expr = strings.TrimSpace(expr)
+
+	// Handle || (lowest precedence)
+	if parts := splitLogical(expr, "||"); len(parts) > 1 {
+		for _, part := range parts {
+			if evalExpression(part) {
+				return true
+			}
+		}
+		return false
+	}
+
+	// Handle && (higher precedence)
+	if parts := splitLogical(expr, "&&"); len(parts) > 1 {
+		for _, part := range parts {
+			if !evalExpression(part) {
+				return false
+			}
+		}
+		return true
+	}
+
+	// Handle negation
+	if strings.HasPrefix(expr, "!") {
+		return !evalExpression(expr[1:])
+	}
+
+	// Handle parentheses
+	if strings.HasPrefix(expr, "(") && strings.HasSuffix(expr, ")") {
+		return evalExpression(expr[1 : len(expr)-1])
+	}
+
+	// Handle string functions
+	if r, ok := evalStringFunc(expr); ok {
+		return r
+	}
+
+	// Handle comparisons
+	return evalComparison(expr)
+}
+
+// splitLogical splits an expression by a logical operator, respecting parentheses.
+func splitLogical(expr, op string) []string {
+	depth := 0
+	var parts []string
+	start := 0
+	for i := 0; i < len(expr); i++ {
+		switch expr[i] {
+		case '(':
+			depth++
+		case ')':
+			depth--
+		}
+		if depth == 0 && i+len(op) <= len(expr) && expr[i:i+len(op)] == op {
+			parts = append(parts, expr[start:i])
+			start = i + len(op)
+			i += len(op) - 1
+		}
+	}
+	parts = append(parts, expr[start:])
+	if len(parts) <= 1 {
+		return nil // no split happened
+	}
+	return parts
+}
+
+// evalStringFunc evaluates contains(), starts_with(), ends_with().
+func evalStringFunc(expr string) (bool, bool) {
+	expr = strings.TrimSpace(expr)
+	for _, fn := range []string{"contains", "starts_with", "ends_with"} {
+		if strings.HasPrefix(expr, fn+"(") && strings.HasSuffix(expr, ")") {
+			inner := expr[len(fn)+1 : len(expr)-1]
+			args := splitFuncArgs(inner)
+			if len(args) != 2 {
+				return false, true
+			}
+			a := strings.Trim(strings.TrimSpace(args[0]), "'\"")
+			b := strings.Trim(strings.TrimSpace(args[1]), "'\"")
+			switch fn {
+			case "contains":
+				return strings.Contains(a, b), true
+			case "starts_with":
+				return strings.HasPrefix(a, b), true
+			case "ends_with":
+				return strings.HasSuffix(a, b), true
+			}
+		}
+	}
+	return false, false
+}
+
+// splitFuncArgs splits function arguments by comma, respecting nested parentheses and quotes.
+func splitFuncArgs(s string) []string {
+	var args []string
+	depth := 0
+	inQuote := byte(0)
+	start := 0
+	for i := 0; i < len(s); i++ {
+		ch := s[i]
+		if inQuote != 0 {
+			if ch == inQuote {
+				inQuote = 0
+			}
+			continue
+		}
+		switch ch {
+		case '\'', '"':
+			inQuote = ch
+		case '(':
+			depth++
+		case ')':
+			depth--
+		case ',':
+			if depth == 0 {
+				args = append(args, s[start:i])
+				start = i + 1
+			}
+		}
+	}
+	args = append(args, s[start:])
+	return args
+}
+
+// evalComparison handles simple comparisons: ==, !=, >, <, >=, <=.
+func evalComparison(expr string) bool {
 	operators := []string{"!=", ">=", "<=", "==", ">", "<"}
 	for _, op := range operators {
-		parts := strings.SplitN(rendered, op, 2)
+		parts := strings.SplitN(expr, op, 2)
 		if len(parts) == 2 {
 			left := strings.TrimSpace(parts[0])
 			right := strings.TrimSpace(parts[1])
-			// Remove quotes
 			left = strings.Trim(left, "'\"")
 			right = strings.Trim(right, "'\"")
 
@@ -69,21 +201,45 @@ func EvalCondition(expr string, vars map[string]string) bool {
 				return left == right
 			case "!=":
 				return left != right
-			case ">":
-				return left > right
-			case "<":
-				return left < right
-			case ">=":
-				return left >= right
-			case "<=":
-				return left <= right
+			case ">", "<", ">=", "<=":
+				return compareNumericOrString(left, right, op)
 			}
 		}
 	}
 
 	// If no operator found, treat as truthy check
-	rendered = strings.TrimSpace(rendered)
-	return rendered != "" && rendered != "false" && rendered != "0" && rendered != "null"
+	expr = strings.TrimSpace(expr)
+	return expr != "" && expr != "false" && expr != "0" && expr != "null"
+}
+
+// compareNumericOrString tries numeric comparison first, falls back to string comparison.
+func compareNumericOrString(left, right, op string) bool {
+	lf, errL := strconv.ParseFloat(left, 64)
+	rf, errR := strconv.ParseFloat(right, 64)
+	if errL == nil && errR == nil {
+		switch op {
+		case ">":
+			return lf > rf
+		case "<":
+			return lf < rf
+		case ">=":
+			return lf >= rf
+		case "<=":
+			return lf <= rf
+		}
+	}
+	// Fallback to lexicographic
+	switch op {
+	case ">":
+		return left > right
+	case "<":
+		return left < right
+	case ">=":
+		return left >= right
+	case "<=":
+		return left <= right
+	}
+	return false
 }
 
 // ──────────────────────────────────────────
